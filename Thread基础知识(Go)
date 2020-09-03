@@ -182,3 +182,124 @@ func main() {
 	mu.Unlock()
 }
 这样就可以合理的打出1000这个结果了
+
+再看一个例子：
+code：
+func main() {
+	alice := 10000
+	bob := 10000
+	var mu sync.Mutex
+
+	total := alice + bob
+
+	go func() {
+		for i := 0; i < 1000; i++ {
+		        //code 1
+			mu.Lock()
+			alice -= 1
+			mu.Unlock()
+                        //code 2
+			mu.Lock()
+			bob += 1
+			mu.Unlock()
+		}
+	}()
+	go func() {
+		for i := 0; i < 1000; i++ {
+			mu.Lock()
+			bob -= 1
+			mu.Unlock()
+
+			mu.Lock()
+			alice += 1
+			mu.Unlock()
+		}
+	}()
+
+	start := time.Now()
+	for time.Since(start) < 1*time.Second {
+		mu.Lock()
+		if alice+bob != total {
+			fmt.Printf("observed violation, alice = %v, bob = %v, sum = %v\n", alice, bob, alice+bob)
+		}
+		mu.Unlock()
+	}
+}
+结果会不断出现observed violation。。。这段话，因为在运行code1和code2过程中，会有新的goroutines在运行，所以在println的过程中，不一定code1和code2已经运行完成了，所以会出现不相等的状况
+code：
+mu.Lock()
+alice -= 1
+bob += 1
+mu.Unlock()
+
+改成这样的模式就可以顺利的运行了。
+
+*************************************
+channel如何定义的例子
+channel是一种管道，主要连接两个goroutines的，并传递信息的。
+
+1 unbuffered channel
+
+func main() {
+	c := make(chan bool)
+	go func() {
+		time.Sleep(1 * time.Second)
+		<-c
+	}()
+	start := time.Now()
+	c <- true // blocks until other goroutine receives
+	fmt.Printf("send took %v\n", time.Since(start))
+}
+这个就是unbuffered channel， go func() channel中收到了true的信息，它才继续运行。
+
+2 buffered channel
+
+func main() {
+	c := make(chan bool, 1)
+	go func() {
+		time.Sleep(1 * time.Second)
+		<-c
+	}()
+	start := time.Now()
+	c <- true
+	fmt.Printf("send took %v\n", time.Since(start))
+
+	start = time.Now()
+	c <- true
+	fmt.Printf("send took %v\n", time.Since(start))
+}
+这个就是有管道的channel的例子。
+
+首先一定要拒绝deadlock！
+func main() {
+	c := make(chan bool)
+	c <- true
+	<-c
+}
+这个就是deadlock的明显例子，当true传到channel当中的时候，因为是没有储存空间的（无buffer的），所以要等到channel的receiver接收到channel的信息，这个Goroutines才不会继续block
+
+下列写一个正常的code;
+import "time"
+import "math/rand"
+
+func main() {
+	c := make(chan int)
+
+	for i := 0; i < 4; i++ {
+		go doWork(c)
+	}
+
+	for {
+		v := <-c
+		println(v)
+	}
+}
+
+func doWork(c chan int) {
+	for {
+		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+		c <- rand.Int()
+	}
+}
+这个就可以应用的channel。
+
