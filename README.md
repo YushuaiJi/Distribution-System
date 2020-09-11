@@ -5,7 +5,7 @@
 - [x] **Golang Thread基础知识** [理论与代码实例](https://github.com/YushuaiJi/DIstribution-System/blob/master/Thread基础知识(Go))
 - [x] **Mapreduce论文** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
 - [x] **Mapreduce实现(Golang)** [MapReduce实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
-- [x] **GFS论文** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
+- [x] **GFS论文** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/GFS.md)
 - [x] **Raft1** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
 - [x] **Raft2** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
 - [x] **Raft3** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
