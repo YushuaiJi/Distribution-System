@@ -9,7 +9,7 @@
 - [x] **Raft1** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
 - [x] **Raft2** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
 - [x] **Raft3** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
-- [x] **Raft1实现(Golang)** [Raft1实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
-- [x] **Raft2实现(Golang)** [Raft2实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
-- [x] **Raft3实现(Golang)** [Raft3实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
+- [x] **Raft1实现(Golang)** [Raft1实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft1.md)
+- [x] **Raft2实现(Golang)** [Raft2实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft2.md)
+- [x] **Raft3实现(Golang)** [Raft3实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft3.md)
 
