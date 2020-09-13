@@ -202,5 +202,60 @@ GFS为了保持一个consistency model，应用层采取了一些必要的措施
 
 对于并行的append的操作，对于出现重复的数据，client提供去重的功能。
 
-4: System Interaction
-(未完待续）
+## 4: System Interaction
+
+System Interaction会看到如何把client，master，和chunkservers相互互动去应用数据操作，例如原子性数据append，snapshot等等。
+
+### 4.1 Lease and Mutation Order
+
+- 我们用lease来保持一致性操作顺序，GFS master会对一个chunk选择一个chunkserver，发放lease（叫做primary），此时就用primary来控制整个
+
+一致性操作
+
+- Lease机制为了减少master的参与，他会有一个timout的时间（60s），但是lease不会马上expire。
+
+如果lease正常工作，lease可以持续性的存在（通过HeartBeat来延续时间，且正常工作，时间会被持续性延续下去）
+
+当primary和master断了以后，GFS也方便把其他chunk副本所在的chunkservers作为新的primary，
+
+### 4.2 Control Flow
+![3C74D0B1CC535C3D4773AA97EB9C52D1](https://user-images.githubusercontent.com/52951960/93028727-48579900-f648-11ea-972e-6fe0471d86d9.png)
+
+- 1 client会向master要当前chunk的，拥有lease的chunkserver和其他chunkserver副本的位置，如果没有
+
+lease，则master会选择一个副本并发放lease（not shown）
+
+- 2 ：master会把primary chunkserver和 chunkserver的副本信息都发送给client
+
+client会把信息cache储存起来，当未来primary chunksever联系不上或者这个chunkserver不在拥有lease，它会再次
+
+和master联系。
+
+- 3 client会把这些数据发送给所有的拥有该chunk的副本（这里的push是没有任何顺序的）
+
+每个chunkserver会储存这些数据在内部的LRU 缓存（会在这些数据用了以后或者过期的时候删除）
+
+By decoupling the data flow from the control flow, we can improve performance by scheduling
+
+the expensive data flow based on the network topology regradless of which chunkserver is the
+
+primary(接下来的章节会讨论这些数据是如何被发送的）
+
+- 4 当所有的replicas都接受到了数据，client会向primary发送一个请求。 这个请求会确认好所有已经发送了的数据
+
+而且primary会向所有的操作都发送一个序列号（这些操作可能来自于多个client），这样可以保证多个client并发写请求
+
+可以让多个副本写入的数据是consistency的
+
+- 5 primary会向所有的副本发送secondary replicas发送请求，每个副本都会根据这个请求进行一致性的操作顺序
+
+- 6 所有的副本会告诉primary当他们完成所有操作的时候
+
+- 7 primary会回复client，任何在replicas的errors都会报告给client。
+
+错误是在primary chunkserver里面是正确的操作的，但是可能在某一个副本当中发生了错误（因为如果在primary发生错误，它就不会被发送出来）
+
+client会处理被遗留的那一块出现一致性问题的区域，我们经常尝试好几次（3）和（7）防止错误发生，而进行自动恢复程序启动，在开始write的时候。
+
+
+-
