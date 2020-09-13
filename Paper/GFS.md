@@ -148,5 +148,59 @@ across chunkservers（后面会讨论）
 
 之后再replay在这个之后的checkpoint，这样就可以缩短恢复的时间
 
+## 3 Consistency Model
 
+![IMG_0140(20200913-093905)](https://user-images.githubusercontent.com/52951960/93008234-0b869600-f5a5-11ea-8a68-5c6f6736b550.PNG)
 
+- 首先我们定义一下图中的consistent,  defined的意思
+
+- consistent: 所有的client都能看到一样的数据，不管从哪个副本中读取。
+
+- defined: 一个文件的region发生write mutation操作后，client可以看到所有操作的数据
+
+图中的几种情况：
+
+1：Write(Serial Success)单个write操作（success)，则所有的副本都会写入这次操作的数据，所以所有客户都能看到这次写
+
+的数据，属于数据defined
+
+2：Write(Concurrent Successes) 多个写的操作(Successes), 是多个客户端写请求发给Primary后，Primary会决定写的操作顺序，但是多个
+
+写的操作可能存在区域重叠，这样最后的结果可能是多个写操作叠加在一起的结果，这样的情况就是consistent但是不是defined。
+
+3: Write(Failure) 写操作失败，则可能有一些副本进行了write操作，但是有一些没有，所以他是inconsistent的
+
+4: Record Append(Serial Success and Concurrent Success) 由于Record Append可能包含重复数据，所以这不是consistent的，但是是defined的
+
+5: Record Append(Failure) 部分副本可能append成功，但是部分副本可能会append失败，所以是inconsistent的。
+
+- 为了保持“已经操作”的文件的consistent且包含最后一个写操作，GFS通过以下的操作来保证：
+
+1： 保持左右操作的一致性，保证所有chunk的操作是有一样的order的
+
+2： 当有一个chunk副本不一样的时候（stale）可能是因为它的chunkservers挂掉的时候，这个chunk就没有进行操作。
+
+但是GFS会增加一个version，version是在chunkservers挂掉的时候对每一次client进行write或者append操作的时候，version会增加
+
+（:((）
+
+- GFS应用层
+
+GFS为了保持一个consistency model，应用层采取了一些必要的措施:
+
+1: 保持append而不是overwrite
+
+2：checkpoint
+
+3：writing self-validation recording
+
+4：self - identifying recording
+
+具体操作具体是： append一个file的时候，写完以后要进行重命名
+
+对文件进行checkpoint，且在最近一次的checkpoint文件区域和最新文件区域的数据是否具有一致性，如果不一致，则可以进行重新操作
+
+对于并行的append的操作，对于出现重复的数据，client提供去重的功能。
+
+4: System Interaction
+(未完待续）
