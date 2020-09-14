@@ -257,5 +257,60 @@ primary(接下来的章节会讨论这些数据是如何被发送的）
 
 client会处理被遗留的那一块出现一致性问题的区域，我们经常尝试好几次（3）和（7）防止错误发生，而进行自动恢复程序启动，在开始write的时候。
 
+## 4.3 Data Flow
 
--
+- 数据发送是linearly型的，是一种picked chain of chunkservers, 在一种pipeline的方式。GFS的目标是充分利用机器的宽带，防止网络瓶颈
+
+和高延迟性，减小push数据的时候的延迟性
+
+- 这里对linearly进行解释，比如这里有chunkserver S1-S4。首先client会选取最近的chunkserver S1， 之后 S1会选取S2-S4之中离它最近的
+
+chunkserver S2，S2同理发给S3, S3传给S4。（这里的距离是通过网络拓扑来确定的(network topology),而且这个距离是可以通过IP address来
+
+精确的估计。
+
+- 按照这个方式传播B个字节到R个副本，这时候网络吞吐量为T，时间之间的时延为L --- 整个数据的传输时间为 B/T+RL
+
+## 4.4 Atomic Record Appends
+
+- 传统的write中，client会明确数据操作的偏移量，而且并发的write在同一个区域不是序列化的，它可能是很多的数据碎片来自于很多的client里的。
+
+但是在append里面，client只specify data。
+
+- 如何操作呢？
+
+1：首先client会把数据push到所有副本的最后一个chunk，接着它会向primary发起请求。同时primary会检查最后一个chunk是不是还有足够的空间写当前
+
+的请求，可以就开始执行写流程。如果不行，primary会把最后一个chunk的剩余空间pad满，之后告诉其他的副本都这么干，最后告诉client，最后的chunk已经
+
+满了，需要开下一个chunk。
+
+2：如果整个append失败了的话，client会重新尝试这个操作，这样可能有一些原来append成功的chunk就有两次append，但是原来没有成功的chunk就只有一分
+
+append。
+
+所以GFS是不能保证bytewise identical的，他只能保证一次的written是原子性的。
+
+## 4.5 SnapShot 
+
+- snapshot操作目的是进行copy一个file或者a directory tree。它主要用作于快速的create 分支copy大量数据集，或者是checkpoint当前状态在某些改变发生
+
+之前（这些change可能可以被committed 或者被驳回）
+
+1： client先会向GFS master发送Snapshot请求
+
+2：GFS master收到请求以后，会回收所有这次Snapchat涉及到的chunk的lease。（保证了接下来的写操作可以让master找到lease的holder，同时也给master机会创造
+
+一个新的copy chunk。
+
+3：当这个lease到期以后，master会log操作，并把这个log放到disk中，之后他会在内存中复制一份snapshot涉及到进行复制或者diectory tree的metadata。
+
+4：snapshot完成以后，client会写一个chunk C在sp操作以后，client会要求master找到现在的lease holder。
+
+5：这时候master会发现chunk C的引用次数已经超过了1，即snapshot和master自己的request。这样拥有chunk C的chunkserver会发送一个创建chunk C的拷贝请求
+
+记作chunk C'，把最新的数据导入到C'中，就完成了copy on write。
+
+###  Master Operation 
+
+
