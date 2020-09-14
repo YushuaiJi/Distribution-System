@@ -311,6 +311,41 @@ append。
 
 记作chunk C'，把最新的数据导入到C'中，就完成了copy on write。
 
-###  Master Operation 
+### 5 Master Operation 
+
+- GFS master有很多的功能，其中包括namespace Management, Replica Placement, Chunk Creation, Re-replication and Rebalancing and Garbage Collection等。
+
+## 5.1 Namespace Management and Locking
+
+不想传统的file System， GFS 没有一个pre-directory data（可以列出来所有的file在dictory里面），它也不支持别名这种处理（对于同一种file或者directory而言）
+
+每一个master的操作都会获得一系列的锁。比如当一个操作设计/d1/d2/.../dn/leaf（leaf可能是一种路径，也可能是一种file，
+
+那么需要获得/d1/,/d1/d2/,...,/d1/d2/.../dn的read lock，然后根据操作，获得
+
+/d1/,/d1/d2/,...,/d1/d2/.../dn的read lock或者是write lock。
+
+- Example
+
+当/home/user被快照到/save/user上时，我们做不到/home/user/foo的创建
+
+因为对于snapshot而言:
+
+- 1: 获得/home 和/save的read lock，获取/home/user和/save/user的read lock
+
+- 2:Snapshot 对 /home和/save的read lock，/home/user和/save/user的write lock。而创建的时候，我们要/home,/home/user的read lock，然后/home/user/foo的write lock。这个时候/home/user的锁产生conflict，/home/user/foo创建是不可行的。
+
+- 3:这种锁的机制好处是可以在同一个目录下并发的进行一系列操作，比如可以在同一个目录下创建文件，每一个操作豆申请了read lock和write lock。read lock有效
+
+的防止了被删除，重命名，快照等操作
+
+## 5.2 Replica Placement
+
+- GFS的cluster是高度分布在各个不同的地方的，经常有成百上千个chunkserver分布在多个machine rack上。这样不仅可以防止网络switch带来的cost，同时分布在不同rack上
+
+可以提高数据的scalability， reliability，and avaliability.
+
+## 5.3 Creation, Re-replication, Rebalancing(未完待续）
+
 
 
