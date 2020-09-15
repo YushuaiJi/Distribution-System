@@ -406,6 +406,39 @@ up-to-data 和 stale replica。
 当master分配lease到一个chunk时，它会更新chunk version number，然后其他的副本都会更新该值。这个操作是在返回给客户端之前完成的，如果有一个chunkserver当前是down的，那么它的version number就不会增加。当chunkserver重启后，会汇报它的chunk以及version number，对于version number落后的chunk，master就认为这个chunk的数据是落后的。
 
 GFS master会把落后的chunk当垃圾来清理掉，并且不会把落后的chunkserver的位置信息传给client。（GFS master把落后的chunk当作垃圾清理，那么，是否是走re-replication的逻辑来生成新的副本呢？没有，是走立即复制的逻辑。）
+
+## High Avaliability
+
+- overall system highly available通过两次fast recovery+replication
+
+对于fast recovery而言chunkserver和master都是秒级重启的
+
+- Chunk Replication
+
+每一个chunk分布在多个rack上，副本的数量是由client指定好的。
+
+chunkserver出现问题的时候，GFS master会自动复制副本（保证了副本数量和用户指定的一致）
+
+- Master Replication
+
+Master包含的operation log+checkpoint都会复制到很多机器上面，当只有在这些机器成功了以后，才能正常运行（复制的shadow master
+
+只有在primary master down掉以后，才能发挥作用。
+
+只有一台master在garabge collection的后台操作的收。当master down掉，master能在很多时间内重启。
+
+master的机器挂掉的话，监控会在其他拥有operation log的机器上进行重启master。
+
+但是新启动的只提供read，因为挂掉的一瞬间，可能有一些log会记录到primary里面，但是没有记录到secondary master。
+
+- Data Integrity
+
+每个chunkserver可以用checksum来验证数据是否损坏的。每个chunk被分成多个64KB的block，每个block有32位的checksum，checksum在内存中和磁盘的log中都有记录。
+
+对于读请求，chunkserver会检查读操作所涉及block的所有checksum值是否正确，如果有一个block的checksum不对，那么会报错给client和master。client这时会从其他副本读数据，而master会clone一个新副本，当新副本clone好后，master会删除掉这个checksum出错的副本。
+
+- Diagnose Tools 主要是通过log，包括重要事件的log(chunkserver上下线)，RPC请求，RPC响应等。
+（未完待续）
  
 
 
