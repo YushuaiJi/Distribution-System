@@ -39,7 +39,5 @@ GFS是一种scalable的分布式文件系统，其主要用处是管理数据。
 同时它在廉价的商用硬件的情况下可以有很好的fault tolerance，并且可以给大量用户提供服务。
 - [x] **Fault-Tolerant Virtual Machines** [论文](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/Raft1.md)
 - [x] **Raft1** [论文1](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/Raft1.md)|[论文2](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)|[论文3](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
-- [x] **Raft1实现(Golang)** [Raft1实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft1.md)
-- [x] **Raft2实现(Golang)** [Raft2实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft2.md)
-- [x] **Raft3实现(Golang)** [Raft3实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft3.md)
+- [x] **Raft1实现(Golang)** [Raft1实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft1.md)| [Raft2实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft2.md)| [Raft3实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft3.md)
 
