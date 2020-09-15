@@ -345,7 +345,68 @@ append。
 
 可以提高数据的scalability， reliability，and avaliability.
 
-## 5.3 Creation, Re-replication, Rebalancing(未完待续）
+## 5.3 Creation, Re-replication, Rebalancing
+
+-  Creation 我们在creation新的chunk的时候，我们会考虑以下几个因素
+
+1：磁盘空间的average使用率要低于平均值的chunkserver。
+
+2：控制好每一个chunkserver的创建chunk的次数，因为每一个创建代表着后面有有很多数据操作，虽然创造一个chunk很cheap，但是如果一个chunkserver
+
+有创建太多的chunk，会导致这个chunkserver的write traffic。
+
+3： chunk的副本应该放在不同的chunkserver机架上。
+
+- Re-replication
+ 
+ 1：如果一个chunk的副本没有达到所需要的数量的时候，就需要做复制操作（这里chunkserver unavailable，副本的数据错误，磁盘损坏，或者预定的副本数量增加）
+ 
+ chunk的复制的优先级根据下列的因素来确定：
+ 
+ （1）：丢失副本多的比丢失副本少的优先级高
+ 
+ （2): 如果该文件正在使用，那么比已经删除文件的chunk优先级高。
+ 
+ （3）：阻塞client进程的chunk优先级比较高。
+ 
+ chunk准备复制的时候考虑五个因素：磁盘使用率，该chunkserver的复制个数限制，多个副本应该放在多个机架，集群的复制个数限制，限制每个chunkserver的复制
+ 
+ 网络宽带（通过限制流量的速率来限制）。
+ 
+ - Rebalancing
+ 
+ GFS会周期性检查副本的分布情况，这样能更好的调整磁盘的使用翁恺和负载均衡。 GFS master每次对新加入的chunkserver，会逐渐的迁移到副本上面，这样可以防止
+ 
+ chunkserver的带宽打满。
+ 
+ - Garbage Collection
+ 
+ 当一个文件被删除，GFS不会立即进行物理性的删除，而是在后面的定期清理过程当中才会做到真正的删除。
+ 
+ 对于一个删除操作，GFS只是写一条log+文件命名成对外不可见的名称（名称包括删除时间的times-tamp）。
+ 
+ GFS master会定期扫描，这些文件存在超过三天以后，这些文件会从namespace中删掉（改变它的名字，当然可以不删除它，如果把名字改回去的话）+内存中的metadata删除掉。
+ 
+ ---> 对chunk namespace的定期扫描当中，master会发现这些要删除掉的oropened chunks，同时在metadata中删除掉。
+ 
+ 同时在chunkserver和heartbeat的交互过程中，GFS master会把这些不在metadata的chunk告诉chunkserver，这样chunkserver就可以删除这些chunk了。
+ 
+ 为什么用心跳交互的方式，因为心跳交互可以再失败以后重复操作+删除操作和其他的全局scan metadata是可以一起做的。
+ 
+ 缺点：这样可能需要时常的创建和删除文件，这种延期删除方式可能会让磁盘的使用率过高。GFS一般是采用一个文件调用删除操作两次，且GFS会马上做物理删除
+ 
+ 操作，释放空间。
+ 
+ - 5.5 Stale Replication Detection
+
+当一台chunkserver挂掉的时候，有新的写入操作到chunk副本，会导致chunkserve的数据不是最新的。这里master就要维持chunk version number来区别
+
+up-to-data 和 stale replica。
+
+当master分配lease到一个chunk时，它会更新chunk version number，然后其他的副本都会更新该值。这个操作是在返回给客户端之前完成的，如果有一个chunkserver当前是down的，那么它的version number就不会增加。当chunkserver重启后，会汇报它的chunk以及version number，对于version number落后的chunk，master就认为这个chunk的数据是落后的。
+
+GFS master会把落后的chunk当垃圾来清理掉，并且不会把落后的chunkserver的位置信息传给client。（GFS master把落后的chunk当作垃圾清理，那么，是否是走re-replication的逻辑来生成新的副本呢？没有，是走立即复制的逻辑。）
+ 
 
 
 
