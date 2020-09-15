@@ -33,6 +33,10 @@ MapReduce是一个主要用于处理大量数据的集的一种programming model
 该篇在结合86.824课程的内容，以其框架内容为依托，用Go实现了MapReduce，主要实现了串行，并行实现MapReduce，同时写了如何处理Woker failure的方法。
 
 - [x] **GFS论文** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/GFS.md)
+
+GFS是一种scalable的分布式文件，其主要用处是管理数据。
+
+同时它在廉价的商用硬件的情况下可以有很好的fault tolerance，并且可以给大量用户提供服务。
 - [x] **Raft1** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
 - [x] **Raft2** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
 - [x] **Raft3** [论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/MapReduce)
