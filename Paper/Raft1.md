@@ -39,8 +39,19 @@ RSM可以在分布式系统当中解决很多fault tolerance的问题。比如GF
 
 - 4：一个命令被算作完成，只要大部分的cluster回复RPC。小部分慢的RPC对全局没有影响。
 
+2: What's wrong with Paxos 
 
+- 难以理解，缺少细节，难以实现。
 
+- Designing for understandability:算法分成leader election，lop replication, and safety + 日志不允许有空洞。
+
+-Raft Basic 一个leader管理log副本（log entry只能从leader到follower）
+
+1 leader election：原来的leader挂掉以后可以选一个新leader+leader是不需要咨询其他server的决定而可以独自决定把log entry放在哪里。
+
+2：log replication：leader从client中接受log，
+
+3：Safety：任意一个servers将log entry放回到state machine中去，其他的server都会把相同的log entry放回去。
 
 
 
