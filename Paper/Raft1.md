@@ -91,6 +91,58 @@ Raft允许多个server，五个是合理的server数量，因为挂了两个还�
 
 - Raft servers会通过RPC来完成交流，一致性算法主要通过两种RPC来完成，第一种是RequestVote RPCs，第二种是AppendEntries RPCs。
 
+## Leader Election
+
+- Raft主要通过心跳来引发选主的。
+
+- 当server启动的时候，状态是follower。当server从leader或者candidate接受到合法的RPC信息时，它会一直保持follower的状态（leader是通过周期的
+
+发送心跳来证明是leader）但是follower当在选举timeout的时候还没有收到通知，这时候它就开始参与选主了。
+
+Election的具体步骤
+
+- 增加current term
+
+- 转换成candidate state
+
+-选自己为leader，然后保持选主的RPC并且并行的发送信息给其他的server
+
+- candidate状态会持续下去直到有leader进行出来（或者在一定的时间内没有leader）
+
+其中选出leader有自己成为leader，和其他server成为leaders。
+
+以下开始讨论这三种具体情况
+
+1：自己成为了leader。
+
+在cluster的election当中，如果这个server成为了leader，那么它会通过心跳的方式告诉其他的servers，这样可以防止新的选举。
+
+这里我们要明白选举的过程是一个servers只能选一个server成为leader，从而使得最后只有一个candidate变成leader。
+
+2：其他的server变成了leader
+
+如果在选举过程中，candidate接受来自别的servers要成为了leader的RPC，那么这时候还是情况处理。
+
+- leader的term大于等于自身的term，那么candidate会转变成follower。。
+
+- 反之，他会拒绝该leader，并保持自身的candidate的状态。
+
+3：选举一段时间后没有leader。
+
+- 如果出现很多follower同时变成candidate，可能导致没有一个candidate获得了大多数的选举，从而没法选出leader。这个时候，每一个candidate都会timeout。
+
+然后增加一个新的term同时会进行新的一轮election通过增加term和初始化RequestVote RPCs。但是这里要明白，如果没有手段去处理，可能会导致不断地重复选主这种情况。
+
+- Raft利用了Randomized election timout来保证这种split vote出现的情况比较少且出现了也可以进行解决。每个candidate选择一个fixed interval（150ms-300ms）之间，采用这种机制
+
+一般只有一个server变成candidate，然后获取大部分server的election，最后win且变成leader。每一个candidate在收到leader的心跳以后会重新启动定时器，这样可以有效防止有leader的情况
+
+下还发生选举。
+
+-
+
+
+
 
 
 
