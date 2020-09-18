@@ -139,7 +139,68 @@ Election的具体步骤
 
 下还发生选举。
 
--
+## Raft Log replication
+
+![IMG_0145(20200918-084643)](https://user-images.githubusercontent.com/52951960/93542475-b921ec80-f98b-11ea-95e7-477a9b2a8dd1.PNG)
+
+- Log Entry: 储存的指令和term信息+每个log entry都有index(leader指定的），index来表明log entry在log中的位置，一个entry会被认作committed如果ta是safe
+
+去被用作于在state machine中的话。
+
+- 当选出leader以后，leader会接受client的request，这个command是要被state machine所执行的。leader会把command添加到log里面当作一个新entry，接着AppendEntries
+
+RPCs 并行的添加这个entry到其他的servers当中。
+
+- 当所有的entry都被安全的replicated的话，leader会让把entry应用于state machine同时把state machine的运行结果返回给client。如果follower很慢或者
+网络数据丢失，Leader会不断的重复AppendEntries RPCs（即使在leader把结果回应给client以后）直到所有的follower都储存了log entry。
+
+- log的组织方式是跟图片里的样子是一致的，每个log会储存state machine的命令+term number（当log entry被leader接受到的时候).term number主要用作与检查log之间的连续性的问题，从而
+
+为了保持某一些性质。每个log还有integer index 来明确他在log中的位置。
+
+- 当可以安全的运行log在state machines上的时候（leader决定的），且这个entry就是committed的
+
+- raft保证了committed的entries是durable的且最终都会被avaliable state machine运行。(log entry被看作committed的，当这个entry已经被大部分的servers复制了的时候。
+
+- 同时也commit原来的entries在leader的log中的，即使他是之前的leader所创作的（我们还没有说过什么样的是safe的)
+
+- leader会keep track of 最大的committed的index，同时包括在未来的AppendEntries RPCs（包括heartbeats）这样其他的server最终会找到。一旦follower发现这个log entry已经被committed
+
+这个entry会被放到state machine里面运行。
+
+- 2 ： Raft的log replication保证了以下性质：
+
+1：如果两个log entry有相同的index和term，那么它们肯定储存相同的指令。
+
+2：如果两个log entry在两份不同的log当中，并且他们有相同的index和term，那么他们之前的log entry肯定是一摸一样的。
+
+特性一是如何做到的，通过这两种方式： 1: leader在特定的term和index下，只会创建一个log entry 2：log entry不会改变它们在日志中的位置。
+
+特性二是如何保证的：AppendEntries会做log entry的一致性检查，当发送一个AppendEntries RPC的时候，leader会带上log entry之前的log entry的（index，item），如果follower
+
+没有发现跟这个一摸一样的log entry，那么它会拒绝新的log entry。
+
+- 大多数情况下（正常情况下），但是如果leader奔溃了的话，就有可能出现log不一致的情况，for example：
+
+![IMG_0145(20200918-084643)](https://user-images.githubusercontent.com/52951960/93548826-a4992080-f99a-11ea-851e-14a49c369138.PNG)
+
+如图可能会出现缺少一些term，或者多出来一些term，或者添加了错误的term。
+
+如何处理？找到follower和leader最后一个相同的log，且删除掉follower后面不一致的log，把leader这个log entry之后的log entry都复制给follower。
+
+一致性的检查是通过AppendEntries来实现的。
+ 
+ - leader为每个follower维护一个nextIndex，表明下一个将要发送给follower的log entry
+
+- 当leader刚上任时，会把所有的nextIndex设置成其最后一个log entry的index加1，如上图，则是11
+
+- 当follower的日志和leader不一致时，一致性检查会失败，那么会把nextIndex减1
+
+- 最终nextIndex会是leader和follower相同log entry的index加1，这时候，再发送AppendEntries会成功，并且会把follower的所有之后不一致的日志删除掉
+
+- 改进 上述一次回退一个log entry的方法效率较低，在发生冲突时，可以让follower把冲突的term的第一个日志的index发回给leader，这样leader就可以一次过滤掉该term的所有log entry。
+
+在正常情况下，log entry可以通过一轮RPC就能将日志复制到大多数的server，少数的慢follower不会影响性能。
 
 
 
