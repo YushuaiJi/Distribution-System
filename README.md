@@ -22,11 +22,12 @@ MapReduce是一个主要用于处理大量数据的集的一种programming model
 
 它主要用了map function来处理记录key/value pairs，接着利用reduce function聚合压缩key/value pairs.
 
-这篇文章主要通过理解英文版的论文+整合网络资源+自我的理解来描述MapReduce的：
 
 1基本思路
 2如何应用
 3必要的改进
+
+[Mapreduce论文](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/MapReduce.md) | **Abstract**<ul><li>Part 1.1: MapReduce是一个主要用于处理大量数据的集的一种programming model。 1.2: 它主要用了map function来处理记录key/value pairs，接着利用reduce function聚合压缩key/value pairs.<li>Part 1.3:这篇文章主要通过理解英文版的论文+整合网络资源+自我的理解来描述MapReduce的。<li>Part 1.4: 1基本思路+2如何应用+3必要的改进。
 
 - [x] **Mapreduce实现(Golang)** [MapReduce实现](https://github.com/YushuaiJi/Distribution-System/blob/master/Coding%20Overview/MapReduce.md)
 
