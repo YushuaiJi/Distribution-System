@@ -1,25 +1,21 @@
 ## Abstract
 
-- Raft是一致性算法来管理replicated log,它可以产生类似于(multi-）Paxos的结果。但是它跟Paxos还是不太一样的，它具有更好的可读性。
+- Raft是一致性算法来管理replicated log,它可以产生类似于(multi-）Paxos的结果。但是其构造结构跟Paxos不一样，该具有更好的可读性。
 
 为了这种可读性的增加，它分开了关键因素比如leader election，lop replication， and safety。
 
-同时它增加了coherency度，同时减少了state数量。
-
 它有几个关键的创新：
 
-1：Strong Leader：raft使用了stronger的领导方式，比如log只能从leader到其他的servers（例如follower），这大大的简化了副本log的管理，
+1：Strong Leader：Raft具有更强的领导能力，比如log只能从leader到其他的servers（例如follower），这大大的简化了副本log的管理同时让raft更加容易的去理解。
 
-而且让raft更加容易的去理解。
-
-2: Leader election: raft 使用了随机timers去选举leader，只有一小部分机制会使用heartbeat（为了保证一致性算法），这些很容易的解决了矛盾
+2: Leader election: Raft使用了随机timers去选举leader，只有一小部分机制会使用heartbeat（一致性算法必用的玩意，因为heartbeat可以快速且容易解决很多问题）。
 
 3：Membership changes: Raft机制利用了joint consensus方法来配置更新每个servers的信息和作用。
 
-## 1 Replicated State Machines
+## 1 Replicated State Machines（RSM）
 ![IMG_0142(20200916-090113)](https://user-images.githubusercontent.com/52951960/93280160-8517c180-f7fb-11ea-8f3d-e02cff0cb943.PNG)
 
-Replicated State Machines是多个state machine可以在同一个状态，即使某些服务器已经down机了。
+Replicated State Machines是多个state machine可以在同一个状态，这种方式下，即使某些服务器已经down机了，也可以继续工作。
 
 RSM可以在分布式系统当中解决很多fault tolerance的问题。比如GFS,HDFS,以及RAMCloud。
 
@@ -43,7 +39,7 @@ RSM可以在分布式系统当中解决很多fault tolerance的问题。比如GF
 
 - 难以理解，缺少细节，难以实现。
 
-- Designing for understandability:算法分成leader election，lop replication, and safety + 日志不允许有空洞。
+- Designing for understandability:算法分成leader election，lop replication, and safety + 日志不允许有空洞。(修改到这）
 
 ## Raft Basic 
 
