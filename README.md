@@ -5,7 +5,6 @@
 - 对部分6.824的课程重点内容进行了整理
 本人非科班出身，如果有错误望指正
 
-channel的作用
 Module|Abstract
 ---|---
 [Golang Thread基础知识](https://github.com/YushuaiJi/Distribution-System/blob/master/Thread/基础知识(Go).md)<br> | <ul><li>1:先熟悉golang的threads的特性。 2: 对Goroutines的理解。<li>3:锁的作用. <li> 4:channel的作用。
@@ -20,6 +19,7 @@ Module|Abstract
 - 1 该篇在结合86.824课程的内容，以其框架内容为依托，用Go实现了MapReduce.
 - 2 主要实现了串行，并行实现MapReduce，同时写了如何处理Woker failure的方法。
 - 3 同时它在廉价的商用硬件的情况下可以有很好的fault tolerance，并且可以给大量用户提供服务。
+
 
 - [x] **Raft1实现(Golang)** [Raft1实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft1.md)| [Raft2实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft2.md)| [Raft3实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft3.md)
 
