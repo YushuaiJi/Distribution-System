@@ -135,13 +135,13 @@ leader的term大于等于自身的term，那么candidate会转变成follower。�
 
 一般只有一个server变成candidate，然后获取大部分server的election，最后win且变成leader。每一个candidate在收到leader的心跳以后会重新启动定时器，这样可以有效防止有leader的情况
 
-下还发生选举。（具体后面会讨论）（修改至此）
+下还发生选举。（具体后面会讨论）
 
 ## Raft Log replication
 
 ![IMG_0145(20200918-084643)](https://user-images.githubusercontent.com/52951960/93542475-b921ec80-f98b-11ea-95e7-477a9b2a8dd1.PNG)
 
-- Log Entry: 储存的指令和term信息+每个log entry都有index(leader指定的），index来表明log entry在log中的位置，一个entry会被认作committed如果ta是safe
+- Log Entry: 储存的指令和term信息+每个log entry都有index(leader指定的），index来表明log entry在log中的位置，一个entry会被认作committed如果entry是safe
 
 去被用作于在state machine中的话。
 
@@ -158,7 +158,7 @@ RPCs 并行的添加这个entry到其他的servers当中。
 
 - 当可以安全的运行log在state machines上的时候（leader决定的），且这个entry就是committed的
 
-- raft保证了committed的entries是durable的且最终都会被avaliable state machine运行。(log entry被看作committed的，当这个entry已经被大部分的servers复制了的时候。
+- Raft保证了committed的entries是durable的且最终都会被avaliable state machine运行。(log entry被看作committed的，当这个entry已经被大部分的servers复制了的时候。
 
 - 同时也commit原来的entries在leader的log中的，即使他是之前的leader所创作的（我们还没有说过什么样的是safe的)
 
@@ -184,26 +184,18 @@ RPCs 并行的添加这个entry到其他的servers当中。
 
 如图可能会出现缺少一些term，或者多出来一些term，或者添加了错误的term。
 
-如何处理？找到follower和leader最后一个相同的log，且删除掉follower后面不一致的log，把leader这个log entry之后的log entry都复制给follower。
+如何处理？找到follower和leader最后一个相同的log，且删除掉follower后面不一致的log，把leader这个log entry（最后一个相同的log entry）之后的log entry都复制给follower。
 
 一致性的检查是通过AppendEntries来实现的。
  
- - leader为每个follower维护一个nextIndex，表明下一个将要发送给follower的log entry
+ - leader为每个follower都产生一个nextIndex，表明下一个将要发送给follower的log entry。
 
-- 当leader刚上任时，会把所有的nextIndex设置成其最后一个log entry的index加1，如上图，则是11
+- 当leader刚开始check的时候，会把所有的nextIndex设置成其最后一个log entry的index加1，图中是11。
 
-- 当follower的日志和leader不一致时，一致性检查会失败，那么会把nextIndex减1
+- 当follower的日志和leader不一致时，一致性检查会失败，那么会把nextIndex减1，且重新尝试AppendEntries RPC。
 
-- 最终nextIndex会是leader和follower相同log entry的index加1，这时候，再发送AppendEntries会成功，并且会把follower的所有之后不一致的日志删除掉
+- 最后nextIndex会是leader和follower相同log entry的index，且此时AppendEntries会移除所有不一致的log（entries）。
 
 - 改进 上述一次回退一个log entry的方法效率较低，在发生冲突时，可以让follower把冲突的term的第一个日志的index发回给leader，这样leader就可以一次过滤掉该term的所有log entry。
 
 在正常情况下，log entry可以通过一轮RPC就能将日志复制到大多数的server，少数的慢follower不会影响性能。
-
-
-
-
-
-
-
-
