@@ -1,0 +1,15 @@
+## Abstrct
+
+- FT virutal machine主要是通过备份execution设置一个backup virtual machine，来备份primary的virtual machine。
+
+- 设计一个VMware VSphere 4.0来完美的运行和使用，特别是可以进行商业落地。
+
+## Introduction
+
+- 常用的方式是应用fault-tolerant servers是主/从备份的方式进行的。其主要功能是当primary machine出现问题的时候，back up machine会立马代替primary machine。
+
+- 这里要注意的是back up machine要时时刻刻保持住和primary machine保持一致，这样才可以瞬间接管primary machine。
+
+- 不同的方式是replicate servers，这样对带宽的要求就低了很多相比于state machine approach。
+
+- i
