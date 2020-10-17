@@ -11,6 +11,7 @@ Module|Abstract
 [Mapreduce论文](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/MapReduce.md)<br> | <ul><li>1: MapReduce是一个主要用于处理大量数据的集的一种programming model。 2: 它主要用了map function来处理记录key/value pairs，接着利用reduce function聚合压缩key/value pairs.<li>3:这篇文章主要通过理解英文版的论文+整合网络资源+自我的理解来描述MapReduce的。<li> 4: 1基本思路+2如何应用+3必要的改进。
 [GFS论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/GFS.md)<br> | <ul><li>1:GFS是一种scalable的分布式文件系统，其主要用处是管理数据。
 [Raft1](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/Raft1.md)<br> | <ul><li> 1 Raft是一致性算法来管理replicated log,它可以产生类似于(multi-）Paxos的结果。 2: 它的结构跟Paxos不一样，它具有更好的可读性。<li>3:它分开了关键因素比如leader election，lop replication， and safety。
+[Raft2](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/Raft2.md)<br> | <ul><li> 1 raft的安全性和集群成员变更
  
  
  ## 代码实现
