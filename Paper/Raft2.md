@@ -107,21 +107,20 @@ T的）
 
 8: 所以就可以利用反证法证明了结论，committed的entries会在更换leader之后还是继续存在的。
 
+## Follower and candidate creashes
 
 
+- follower崩溃掉后，会按如下处理
 
 
+1 当发送的RequestVote和AppendEntries失败的时候，Raft会不断的重新尝试，直到成功。
 
 
-4:假设voter一直储存着这个entry。因为，假设中U是最小的不存在此log entry的leader，那么[T,U)之间的leader不会删除和覆盖自己的log entry且follower只会删除和leader冲突的log entry；:
-4:假设voter一直储存着这个entry。因为，假设中U是最小的不存在此log entry的leader，那么[T,U)之间的leader不会删除和覆盖自己的log entry且follower只会删除和leader冲突的log entry；
-4:假设voter一直储存着这个entry。因为，假设中U是最小的不存在此log entry的leader，那么[T,U)之间的leader不会删除和覆盖自己的log entry且follower只会删除和leader冲突的log entry；
+2:如果servers crash的时候是已经完成RPC但还没有回复的时候，它会收到一样的RPC，但是它不会采取接受到的操作。
 
 
+## Timing and availability
 
-
-
-
-
+(未完待续）
 
 
