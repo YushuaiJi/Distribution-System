@@ -121,6 +121,57 @@ T的）
 
 ## Timing and availability
 
-(未完待续）
+系统的运行不能由于有些事件的或快或慢而造成不对的结果。但是实际情况不同事件系统反应给客户的所需要时间是不一样的，比如信息交换的事件
 
 
+总是比servers crash的时间要长很多等等。
+
+
+leader的选举的“时间”是非常重要的。raft有能力去选举且保持稳定的leader就要满足下列需求：
+
+
+broadcastTime <= electionTmieout <= MTBF
+
+
+- broadcastTimeout:是server并行发送给其他server RPC并收到回复的时间.(一般在0.5ms到20ms之间，这个取决于储存技术）
+
+
+- electionTimeout:是选举超时时间.（一般在10ms到500ms之间）
+
+
+- MTBF是一台server两次故障的间隔时间.（一般在几个月甚至更长的时间）
+
+
+
+## Cluster Membership changes
+
+![IMG_0270](https://user-images.githubusercontent.com/52951960/96407066-2509a600-1213-11eb-9dca-174e1b2198c5.jpg)
+
+在集群server发生变化的时候，把所有的server配置信息从老的替换为新的需要一段时间，是不可能一次性更替成功的，当每台server的替换进度是不一样的时候，可能会导致出现两个leader的情况，
+
+
+Server 1和Server 2可能以C_old配置选出一个leader，而Server 3，Server 4和Server 5可能以_new选出另外一个leader，导致出现两个leader。
+
+
+
+- raft使用两阶段的过程来完成上述转换：新老配置都存在(joint consensus) ---> 替换成新配置
+![IMG_0271](https://user-images.githubusercontent.com/52951960/96407818-d52bde80-1214-11eb-83ef-f0bfa5e9e915.jpg)
+
+
+leader首先创建C_old,new的log entry，然后提交,且保证大多数的old和大多数的new都接收到该log entry ---> leader创建C_new的log entry，然后提交，保证大多数的new都接收到了该log entry。
+
+
+-- 注意的点：
+1 新加入的server一开始没有存储任何的log entry，当它们加入到集群中，可能有很长一段时间在追加日志的过程中，导致配置变更的log entry一直无法提交。
+
+
+2 Raft为此新增了一个阶段，此阶段新的server不作为选举的server，但是会从leader接受日志，当新加的server追上leader时，才开始做配置变更。
+
+
+3 原来的主可能不在新的配置中，在这种场景下，原来的主在提交了C_new log entry（计算日志副本个数时，不包含自己）后，会变成follower状态。
+
+
+4移除的server可能会干扰新的集群,移除的server不会受到新的leader的心跳，从而导致它们election timeout---->然后重新开始选举，这会导致新的leader变成follower状态。
+
+
+Raft的解决方案是，当一台server接收到选举RPC时，如果此次接收到的时间跟leader发的心跳的时间间隔不超过最小的electionTimeout，则会拒绝掉此次选举。这个不会影响正常的选举过程，因为每个server会在最小electionTimeout后发起选举，而可以避免老的server的干扰。
