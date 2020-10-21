@@ -12,6 +12,7 @@ Module|Abstract
 [GFS论文](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/GFS.md)<br> | <ul><li>1:GFS是一种scalable的分布式文件系统，其主要用处是管理数据。
 [Raft1](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/Raft1.md)<br> | <ul><li> 1 Raft是一致性算法来管理replicated log,它可以产生类似于(multi-）Paxos的结果。 2: 它的结构跟Paxos不一样，它具有更好的可读性。<li>3:它分开了关键因素比如leader election，lop replication， and safety。
 [Raft2](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/Raft2.md)<br> | <ul><li> 1 raft的安全性和集群成员变更
+[Raft3](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/Raft3.md)<br> | <ul><li> 1 对raft的Log compaction和Client interaction进行解释,同时对raft算法进行Evaluation。
  
  
  ## 代码实现
