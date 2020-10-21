@@ -47,5 +47,52 @@
 - 写快照花费的时间很长，不能让其delay正常的操作。可以采用copy-on-write操作（例如linux的fork）
 
 
+## Client Interaction
+
+client会发送他们的请求给leader，client刚开始的时候它会随机连接一个server。如果client第一个选择如果不是leader，server会拒绝client的请求且会把这个得到的请求会发送给最近的一个
+
+leader(AppendEntries的请求会包括leader的地址）如果leader crash了的话，client会又开始重新随机选择servers。
 
 
+raft的目标就是linearizable semantics。
+
+
+- 每一个操作都是毫秒级别的，举个例子，如果leader crash了在commit log entry和回复给client之间，这个时候client可能会叫新的leader重新尝试，会造成一个指令的两次实行。
+
+
+- 解决的办法也不难，每一个client会给每一个指令独特的序列号。进而每一个state machine会检验指令是不是最新的序列号。如果接收者接到的信号是已经实行过的，那它不会execute这个请求。
+
+
+- 只读的请求可以不写进log就能执行，但是它有可能返回stale的数据，因为老的leader挂掉了，但它自身意识到自己已经不是leader了，于是client发读请求到该server时，可能获得的是老数据
+
+
+- 这里raft做了如下两个操作来避免以上可能发生的错误：
+
+
+1:leader完备性特征要求所有的log entry是已经committed的了。在正常情况下，leader一直是有已committed log entry的。但是，在leader刚当选的时候，他是不知道哪些是哪些不是的，这里通过提交一个
+
+
+no-op(应该是no operation)的log entry来获取已提交过的log entry（为了避免commiting from previous leader).
+
+
+2: leader在执行只读请求时，需要确定自己是否还是leader，通过和大多数的server发送heartbeat消息，来确定自己是leader，然后再决定是否执行该请求.
+
+## Implementation and Evalution
+
+![IMG_0273](https://user-images.githubusercontent.com/52951960/96734596-48884880-13ed-11eb-80a0-ea82e6bab73f.jpg)
+
+- 从上图的第一幅图，可以看出：
+
+5ms的随机范围，可以将downtime减少到平均283ms。
+
+
+50ms的随机范围，可以将最坏的downtime减少到513ms。
+
+
+- 从第二幅图，可以看出：
+
+
+可以通过减少electionTimeout来减少downtime。
+
+
+过小的electionTimeout可能会造成leader的心跳没有发给其他server前，其他server就开始选举了，造成不必要的leader的切换，一般建议范围为[150ms-300ms]。
