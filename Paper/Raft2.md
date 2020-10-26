@@ -66,21 +66,19 @@ log。
 那么我们假设一个entry AE被存储在term T当中，且同时已经被committed过了。但是在未来的一个leader当中，比如leaderU是没有的。（这里的U>T）的
 
 
-1:这个AE一定要在leader U选举的时候是缺失的(leader从来不删除和重写entries）
+1:这个AE一定要在leader U选举的时候是缺失的(leader从来不删除和重写entries)。
 
 
-2:leader T肯定是把这个entries复制到了许多的servers上，同时leader U收到的投票的servers中，至少有一个接受了这个entries。这个是导致矛盾的一个关键点
+2:leader T肯定是把这个entries复制到了许多的servers上，同时leader U收到的投票的servers中，至少有一个接受了这个entries(这个是导致矛盾的一个关键点).
 
 
-3:这个voter的servers必须是有这个committed entry的，如果它先投U的话，它是会拒绝AppendEntries(来自于leader T)（你要知道这样U > T,所以这个voter的current term也是新于
-
-T的）
+3:这个voter的servers必须是有这个committed entry的，如果它先投U的话，它是会拒绝AppendEntries(来自于leader T)（你要知道这样U > T,所以这个voter的current term也是新于T的）
 
 
 4:假设voter一直储存着这个entry。因为，假设中U是最小的不存在此log entry的leader，那么[T,U)之间的leader不会删除和覆盖自己的log entry且follower只会删除和leader冲突的log entry；
 
 
-5: voter会保证他投向U，所以U会一致跟voter保持“最新”的状态。这样就会有两个矛盾。
+5: voter会保证他投向U，所以U会一直跟voter保持“最新”的状态。这样就会有两个矛盾。
 
 
 6: vote和leader U肯定是share最后一个log term的，即最后一个term是一样的，这样U至少要跟voter一样长，所以它一定要包含voter的log，这就有了第一个矛盾。
@@ -133,7 +131,6 @@ broadcastTime <= electionTmieout <= MTBF
 
 在集群server发生变化的时候，把所有的server配置信息从老的替换为新的需要一段时间，是不可能一次性更替成功的，当每台server的替换进度是不一样的时候，可能会导致出现两个leader的情况，
 
-
 Server 1和Server 2可能以C_old配置选出一个leader，而Server 3，Server 4和Server 5可能以_new选出另外一个leader，导致出现两个leader。
 
 
@@ -141,21 +138,16 @@ Server 1和Server 2可能以C_old配置选出一个leader，而Server 3，Server
 - raft使用两阶段的过程来完成上述转换：新老配置都存在(joint consensus) ---> 替换成新配置
 ![IMG_0271](https://user-images.githubusercontent.com/52951960/96407818-d52bde80-1214-11eb-83ef-f0bfa5e9e915.jpg)
 
-
 leader首先创建C_old,new的log entry，然后提交,且保证大多数的old和大多数的new都接收到该log entry ---> leader创建C_new的log entry，然后提交，保证大多数的new都接收到了该log entry。
 
-
 -- 注意的点：
-1 新加入的server一开始没有存储任何的log entry，当它们加入到集群中，可能有很长一段时间在追加日志的过程中，导致配置变更的log entry一直无法提交。
 
+1 新加入的server一开始没有存储任何的log entry，当它们加入到集群中，可能有很长一段时间在追加日志的过程中，导致配置变更的log entry一直无法提交。
 
 2 Raft为此新增了一个阶段，此阶段新的server不作为选举的server，但是会从leader接受日志，当新加的server追上leader时，才开始做配置变更。
 
-
 3 原来的主可能不在新的配置中，在这种场景下，原来的主在提交了C_new log entry（计算日志副本个数时，不包含自己）后，会变成follower状态。
 
-
 4移除的server可能会干扰新的集群,移除的server不会受到新的leader的心跳，从而导致它们election timeout---->然后重新开始选举，这会导致新的leader变成follower状态。
-
 
 Raft的解决方案是，当一台server接收到选举RPC时，如果此次接收到的时间跟leader发的心跳的时间间隔不超过最小的electionTimeout，则会拒绝掉此次选举。这个不会影响正常的选举过程，因为每个server会在最小electionTimeout后发起选举，而可以避免老的server的干扰。
