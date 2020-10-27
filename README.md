@@ -1,5 +1,5 @@
-# 分布式系统学习
-分布式学习论文以及论文的实现
+# 分布式系统
+分布式学论文以及论文的实现
 - 对论文进行了更加容易理解的翻译，对文章进行了更好梳理
 - 依托于6.824的课程，对部分论文进行了golang实现
 - 对部分6.824的课程重点内容进行了整理
@@ -18,7 +18,7 @@ Module|Abstract
  ## 代码实现
 - [x] **MapReduce** [MapReduce实现](https://github.com/YushuaiJi/Distribution-System/blob/master/Coding%20Overview/MapReduce.md)
 
-- 1 该篇在结合86.824课程的内容，以其框架内容为依托，用Go实现了MapReduce.
+- 1 该篇在结合6.824课程的内容，以其框架内容为依托，用Go实现了MapReduce.
 - 2 主要实现了串行，并行实现MapReduce，同时写了如何处理Woker failure的方法。
 - 3 同时它在廉价的商用硬件的情况下可以有很好的fault tolerance，并且可以给大量用户提供服务。
 
