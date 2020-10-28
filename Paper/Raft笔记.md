@@ -48,7 +48,57 @@ client指令的时间线：[C,L,F1,F2]
 
 而是在下一个vote requests的时候，leader会进行log中的一系列操作，这样其他的服务器也会如此操作，所以这个指令即使以前失败了，但是后面还是会重新可以操作。
 
-##为什么是log
+## 为什么是log
 
+- 服务器为什么需要保持状态机，比如为什么 key/value DB是不够的？
 
+- log是指令的顺序。
+
+让每个服务器都承认单一的执行顺序+leader这样做可以保证每个follower都有一个统一的log。
+
+- log储存指令直到committed为止。
+
+- 储蓄指令是是为了以后leader要重新给follower发送信息准备的
+
+- log储蓄是为了可持续的回复再重建以后。
+
+serves的log是一致的吗？
+
+不是，很多服务器有可能发生lag， 同时他们有些时候会有不一样的entry。
+
+好消息是他们最终会一致的，raft的机制导致只有稳定的entry才可以被执行。
+
+## raft的互动
+
+rf.Start(command)(index，term，isleader）
+
+Start()只有在leader的上面才有用。
+
+Starts开始一个新的log entry增加到leader的log上。
+
+leader发送AppendEntries RPCs
+
+Starts() 回复 w/o 等待RPCs回复。
+
+k/v 层的put()/get()必须等待commit，在applych上可能会坏掉如果服务器失去了leader的位置再committed之前指令可能就丢失。
+
+client要重新发送 isleader：
+
+如果这个服务器不是leader的话，client就要试一试别的term了。
+
+- 为什么需要一个leader
+
+保证所有的指令都是统一行径的。
+
+- raft会给leader的顺序进行数字编号。
+
+new leader --> 新的term
+
+一个term最多一个leader，或者是没有leader。
+
+这个编号可以给服务器跟随最新的leader，不会停止leader。
+
+- 为什么raft同辈开始一个leader的选举。
+
+当raft不能听见current leader(未完待续）
 
