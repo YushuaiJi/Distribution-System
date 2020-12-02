@@ -22,7 +22,7 @@ Module|Abstract
 - 3 同时它在廉价的商用硬件的情况下可以有很好的fault tolerance，并且可以给大量用户提供服务。
 
 
-- [x] **Raft1实现(Golang)** [Raft1实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft1.md)| [Raft2实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft2.md)| [Raft3实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft3.md)
+- [x] **Raft1实现(Golang)** [Raft1实现](https://github.com/YushuaiJi/Distribution-System/blob/master/Coding%20Overview/Raft1.md)| [Raft2实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft2.md)| [Raft3实现](https://github.com/YushuaiJi/DIstribution-System/blob/master/Paper/Raft3.md)
 
 
 ## 待完成
