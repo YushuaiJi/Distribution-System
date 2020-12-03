@@ -1,6 +1,6 @@
 ## Log Replication
 
-log的复制原理我们已经在[raft1](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/Raft1.md)中讲过了。
+log的复制原理我们已经在[raft2](https://github.com/YushuaiJi/Distribution-System/blob/master/Paper/Raft1.md)中讲过了。
 
 首先在讲这个之前，我们得先说明下committed是怎么做到的
 
